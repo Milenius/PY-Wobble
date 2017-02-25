@@ -5,7 +5,7 @@ import numpy as np
 room_width = 1600
 room_height = 900
 
-
+gameObjects = []
 
 pygame.init()
 screen=pygame.display.set_mode((room_width,room_height))
@@ -20,8 +20,13 @@ class food:
 
 	#Initialisierung (create_Event) || Konstruktor
 	def __init__(self,x,y):
+		gameObjects.append(self)
 		self.x = x
 		self.y = y
+
+	def instance_destroy(self):
+		gameObjects.remove(self)
+		foods.remove(self)
 
 	#Draw Event. Grafik darstellung 
 	def draw_event(self):
@@ -37,13 +42,14 @@ class food:
 class wobble:
 	obj_list_index = None
 
-	lifespan = 3000
+	lifespan = 150
 	speed = 2
 	direction = 45
 	size = 10				#Radius in Pixel (glaube ich)
 
 	#Initialisierung (create_Event) || Konstruktor
 	def __init__(self,x,y):
+		gameObjects.append(self)
 		self.x = x
 		self.y = y		
 
@@ -61,6 +67,12 @@ class wobble:
 		if self.y < 0:
 			self.y = room_height
 
+	def instance_destroy(self):
+		gameObjects.remove(self)
+		wobbles.remove(self)
+		print(gameObjects)
+		print(wobbles)
+	
 	#Draw Event. Grafik darstellung 
 	def draw_event(self):
 		#Yay Grafik
@@ -79,10 +91,8 @@ class wobble:
 		self.movement()
 
 		if self.lifespan <= 0:
-			wobbles.remove(self)
+			self.instance_destroy()
 			pass
-
-
 
 #Spawnt Wobbles einmalig in bestimmter Menge
 def wobble_spawner(amount):
@@ -99,8 +109,8 @@ def food_spawner(amount):
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 	return foods
 
-wobbles = wobble_spawner(50)
-foods = food_spawner(50)
+wobbles = wobble_spawner(2)
+foods = food_spawner(0)
 
 while True:
 	for event in pygame.event.get():
@@ -108,13 +118,9 @@ while True:
 			quit()
 	screen.fill((220,220,220))
 
-	for wobble in wobbles:
-		wobble.step_event()
-		wobble.draw_event()
-
-	for food in foods:
-		food.step_event()
-		food.draw_event()
+	for obj in gameObjects:
+		obj.step_event()
+		obj.draw_event()
 
 	clock.tick(60)
 	pygame.display.update()
