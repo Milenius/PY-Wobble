@@ -50,6 +50,10 @@ class wobble:
 	#Initialisierung (create_Event) || Konstruktor
 	def __init__(self,x,y):
 		gameObjects.append(self)
+		
+		self.syn0 = 2*np.random.random((2,4)) - 1
+		self.syn1 = 2*np.random.random((4,2)) - 1
+		
 		self.x = x
 		self.y = y		
 
@@ -70,8 +74,6 @@ class wobble:
 	def instance_destroy(self):
 		gameObjects.remove(self)
 		wobbles.remove(self)
-		print(gameObjects)
-		print(wobbles)
 	
 	#Draw Event. Grafik darstellung 
 	def draw_event(self):
@@ -80,8 +82,23 @@ class wobble:
 
 	#Step Event. Der Code in dieser Methode wird in jedem Frame für dieses Objekt ausgeführt
 	def step_event(self):
-
-		if np.random.randint(2) > 0:
+		
+		self.shortest_distance = np.inf
+		for obj in foods:
+			self.cur_distance = np.sqrt(np.square(self.x - obj.x) + np.square(self.y - obj.y))
+			if self.cur_distance < self.shortest_distance:
+				self.shortest_distance = self.cur_distance
+				self.nearest_food = obj
+		
+		self.nearest_food_dir = np.arctan((obj.x - self.x) / (obj.y - self.y))
+		
+		self.senses = np.array([1,self.nearest_food_dir])
+		
+		self.l0 = self.senses
+		self.l1 = np.tanh(np.dot(self.l0, self.syn0))   
+		self.l2 = np.tanh(np.dot(self.l1, self.syn1)) 
+		
+		if self.l2[0] > self.l2[1]:
 			self.direction += 5
 		else:
 			self.direction -= 5
@@ -98,6 +115,7 @@ class wobble:
 		if self.health <= 0:
 			self.instance_destroy()
 			pass
+
 
 #Spawnt Wobbles einmalig in bestimmter Menge
 def wobble_spawner(amount):
