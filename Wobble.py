@@ -42,7 +42,7 @@ class food:
 class wobble:
 	obj_list_index = None
 
-	lifespan = 150
+	health = 300
 	speed = 2
 	direction = 45
 	size = 10				#Radius in Pixel (glaube ich)
@@ -86,11 +86,16 @@ class wobble:
 		else:
 			self.direction -= 5
 		
+		for obj in foods:
+			if ( (self.x >= (obj.x - self.size)) and (self.x <= (obj.x + self.size)) ) and ( (self.y >= (obj.y -self.size)) and (self.y <= (obj.y +self.size)) ):
+				self.health += obj.food_points
+				obj.instance_destroy()
 
-		self.lifespan -= 1
+
+		self.health -= 1
 		self.movement()
 
-		if self.lifespan <= 0:
+		if self.health <= 0:
 			self.instance_destroy()
 			pass
 
@@ -109,8 +114,12 @@ def food_spawner(amount):
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 	return foods
 
-wobbles = wobble_spawner(2)
-foods = food_spawner(0)
+
+	
+		
+
+wobbles = wobble_spawner(50)
+foods = food_spawner(20)
 
 while True:
 	for event in pygame.event.get():
