@@ -48,11 +48,11 @@ class wobble:
 	size = 10				#Radius in Pixel (glaube ich)
 
 	#Initialisierung (create_Event) || Konstruktor
-	def __init__(self,x,y):
+	def __init__(self,x,y,syn0,syn1):
 		gameObjects.append(self)
 		
-		self.syn0 = 2*np.random.random((2,4)) - 1
-		self.syn1 = 2*np.random.random((4,2)) - 1
+		self.syn0 = syn0
+		self.syn1 = syn1
 		
 		self.x = x
 		self.y = y		
@@ -121,7 +121,7 @@ class wobble:
 def wobble_spawner(amount):
 	wobbles = []
 	for i in range(amount):
-		wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height)))
+		wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),2*np.random.random((2,4)) - 1,2*np.random.random((4,2)) - 1))
 
 	return wobbles
 
@@ -144,6 +144,11 @@ while True:
 		if event.type == QUIT:
 			quit()
 	screen.fill((220,220,220))
+
+	if len(wobbles) < 5:
+		for obj in wobbles:
+			for i in range(10):
+				wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height)),//SYN0,//SYN1)
 
 	for obj in gameObjects:
 		obj.step_event()
