@@ -2,15 +2,15 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-room_width = 1600
-room_height = 900
+room_width = 1920
+room_height = 1080
 
 input_layer_neurons = 2
 hidden_layer_neurons = 4
 output_layer_neurons = 2
 
-wobble_amount = 50
-food_amount = 75
+wobble_amount = 75
+food_amount = 50
 
 gameObjects = []
 newWobbles = []
@@ -92,6 +92,8 @@ class wobble:
 	#Step Event. Der Code in dieser Methode wird in jedem Frame für dieses Objekt ausgeführt
 	def step_event(self):
 		
+		self.direction = self.direction%360
+		
 		self.shortest_distance = np.inf
 		for obj in foods:
 			self.cur_distance = np.sqrt(np.square(self.x - obj.x) + np.square(self.y - obj.y))
@@ -99,15 +101,23 @@ class wobble:
 				self.shortest_distance = self.cur_distance
 				self.nearest_food = obj
 		
-		self.nearest_food_dir = np.arctan((obj.x - self.x) / (obj.y - self.y)+0.00001)
+		self.nearest_food_dir = np.arctan((obj.x - self.x) / ((obj.y - self.y)+0.00001))
 		
-		self.senses = np.array([self.nearest_food_dir,1])
+		if self.nearest_food_dir > self.direction:
+			self.senses = np.array([1,1])
+			
+		if self.nearest_food_dir < self.direction:
+			self.senses = np.array([-1,1])
+		
 		
 		self.l0 = self.senses
 		self.l1 = np.tanh(np.dot(self.l0, self.syn0))   
 		self.l2 = np.tanh(np.dot(self.l1, self.syn1)) 
 		
-		if self.l2[0] > self.l2[1]:
+		print(self.l0)
+		print(self.l2)
+		
+		if self.l2[0] > 0:
 			self.direction += 5
 		else:
 			self.direction -= 5
@@ -153,7 +163,7 @@ while True:
 
 	if (len(wobbles) < 5) and (len(wobbles) != 0):
 		for obj in wobbles:
-			for i in range(10):
+			for i in range(int(wobble_amount/5)):
 
 				new_syn0 = obj.syn0
 				if np.random.randint(10) == 1:
