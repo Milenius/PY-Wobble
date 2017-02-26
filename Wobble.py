@@ -5,6 +5,10 @@ import numpy as np
 room_width = 1600
 room_height = 900
 
+input_layer_neurons = 2
+hidden_layer_neurons = 4
+output_layer_neurons = 2
+
 gameObjects = []
 
 pygame.init()
@@ -46,6 +50,7 @@ class wobble:
 	speed = 2
 	direction = 45
 	size = 10				#Radius in Pixel (glaube ich)
+
 
 	#Initialisierung (create_Event) || Konstruktor
 	def __init__(self,x,y,syn0,syn1):
@@ -92,7 +97,7 @@ class wobble:
 		
 		self.nearest_food_dir = np.arctan((obj.x - self.x) / (obj.y - self.y))
 		
-		self.senses = np.array([1,self.nearest_food_dir])
+		self.senses = np.array([self.nearest_food_dir,1])
 		
 		self.l0 = self.senses
 		self.l1 = np.tanh(np.dot(self.l0, self.syn0))   
@@ -121,7 +126,7 @@ class wobble:
 def wobble_spawner(amount):
 	wobbles = []
 	for i in range(amount):
-		wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),2*np.random.random((2,4)) - 1,2*np.random.random((4,2)) - 1))
+		wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),2*np.random.random((input_layer_neurons,hidden_layer_neurons)) - 1,2*np.random.random((hidden_layer_neurons,output_layer_neurons)) - 1))
 
 	return wobbles
 
@@ -131,10 +136,7 @@ def food_spawner(amount):
 	for i in range(amount):
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 	return foods
-
-
 	
-		
 
 wobbles = wobble_spawner(50)
 foods = food_spawner(20)
@@ -148,7 +150,14 @@ while True:
 	if len(wobbles) < 5:
 		for obj in wobbles:
 			for i in range(10):
-				wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height)),//SYN0,//SYN1)
+
+				new_syn0 = obj.syn0
+				new_syn0[np.random.randint(syn0.shape[0]),np.random.randint(syn0.shape[0])] = 2*np.random.random_sample() - 1
+
+				new_syn1 = obj.syn1
+				new_syn1[np.random.randint(syn1.shape[0]),np.random.randint(syn1.shape[0])] = 2*np.random.random_sample() - 1
+
+				wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height)),new_syn0,new_syn1)
 
 	for obj in gameObjects:
 		obj.step_event()
