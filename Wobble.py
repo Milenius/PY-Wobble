@@ -9,7 +9,11 @@ input_layer_neurons = 2
 hidden_layer_neurons = 4
 output_layer_neurons = 2
 
+wobble_amount = 50
+food_amount = 75
+
 gameObjects = []
+newWobbles = []
 
 pygame.init()
 screen=pygame.display.set_mode((room_width,room_height))
@@ -95,7 +99,7 @@ class wobble:
 				self.shortest_distance = self.cur_distance
 				self.nearest_food = obj
 		
-		self.nearest_food_dir = np.arctan((obj.x - self.x) / (obj.y - self.y))
+		self.nearest_food_dir = np.arctan((obj.x - self.x) / (obj.y - self.y)+0.00001)
 		
 		self.senses = np.array([self.nearest_food_dir,1])
 		
@@ -138,8 +142,8 @@ def food_spawner(amount):
 	return foods
 	
 
-wobbles = wobble_spawner(50)
-foods = food_spawner(20)
+wobbles = wobble_spawner(wobble_amount)
+foods = food_spawner(food_amount)
 
 while True:
 	for event in pygame.event.get():
@@ -147,17 +151,28 @@ while True:
 			quit()
 	screen.fill((220,220,220))
 
-	if len(wobbles) < 5:
+	if (len(wobbles) < 5) and (len(wobbles) != 0):
 		for obj in wobbles:
 			for i in range(10):
 
 				new_syn0 = obj.syn0
-				new_syn0[np.random.randint(syn0.shape[0]),np.random.randint(syn0.shape[0])] = 2*np.random.random_sample() - 1
+				if np.random.randint(10) == 1:
+					new_syn0[np.random.randint(new_syn0.shape[0]),np.random.randint(new_syn0.shape[1])] = 2*np.random.random_sample() - 1
 
 				new_syn1 = obj.syn1
-				new_syn1[np.random.randint(syn1.shape[0]),np.random.randint(syn1.shape[0])] = 2*np.random.random_sample() - 1
+				if np.random.randint(10) == 1:
+					new_syn1[np.random.randint(new_syn1.shape[0]),np.random.randint(new_syn1.shape[1])] = 2*np.random.random_sample() - 1
 
-				wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height)),new_syn0,new_syn1)
+				newWobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),new_syn0,new_syn1))
+		wobbles = wobbles + newWobbles
+		newWobbles = []
+		
+
+	if len(wobbles) == 0:
+		wobble_spawner(wobble_amount)
+	
+	if len(foods) != food_amount:
+		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 
 	for obj in gameObjects:
 		obj.step_event()
