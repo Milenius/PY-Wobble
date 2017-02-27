@@ -1,6 +1,15 @@
 import pygame
 from pygame.locals import *
 import numpy as np
+import sys
+
+if len(sys.argv) > 1:
+	if sys.argv[1] == 'nogui':	
+		print("Gui Dissabled.")
+		build_gui = False
+else:
+	print("No Valid Args passed.")
+	build_gui = True
 
 room_width = 1920
 room_height = 1080
@@ -16,7 +25,7 @@ gameObjects = []
 newWobbles = []
 
 pygame.init()
-screen=pygame.display.set_mode((room_width,room_height))
+if build_gui == True: screen=pygame.display.set_mode((room_width,room_height))	#Turn this off for no GUI
 
 clock = pygame.time.Clock()
 
@@ -105,10 +114,11 @@ class wobble:
 		
 		if self.nearest_food_dir > self.direction:
 			self.senses = np.array([1,1])
-			
-		if self.nearest_food_dir < self.direction:
+		elif self.nearest_food_dir < self.direction:
 			self.senses = np.array([-1,1])
-
+		else:
+			self.senses = np.array([0,1])
+		
 		
 		self.l0 = self.senses
 		self.l1 = np.tanh(np.dot(self.l0, self.syn0))   
@@ -148,7 +158,6 @@ def food_spawner(amount):
 	for i in range(amount):
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 	return foods
-	
 
 wobbles = wobble_spawner(wobble_amount)
 foods = food_spawner(food_amount)
@@ -157,7 +166,7 @@ while True:
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			quit()
-	screen.fill((220,220,220))
+	if build_gui == True: screen.fill((220,220,220))			#Turn this off for no GUI
 
 	if (len(wobbles) < 5) and (len(wobbles) != 0):
 		for obj in wobbles:
@@ -174,7 +183,8 @@ while True:
 				newWobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),new_syn0,new_syn1))
 		wobbles = wobbles + newWobbles
 		newWobbles = []
-		
+	
+	print("Is running!")	
 
 	if len(wobbles) == 0:
 		wobble_spawner(wobble_amount)
@@ -184,8 +194,8 @@ while True:
 
 	for obj in gameObjects:
 		obj.step_event()
-		obj.draw_event()
+		if build_gui == True: obj.draw_event()			#Turn this off for no GUI
 
-	clock.tick(60)
-	pygame.display.update()
+	clock.tick(60)				#Turn this off for no Frame Limit
+	if build_gui == True: pygame.display.update()		#Turn this off for no GUI
 
