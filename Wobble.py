@@ -101,21 +101,19 @@ class wobble:
 				self.shortest_distance = self.cur_distance
 				self.nearest_food = obj
 		
-		self.nearest_food_dir = np.arctan((obj.x - self.x) / ((obj.y - self.y)+0.00001))
+		self.nearest_food_dir = int(np.degrees(np.arctan((obj.x - self.x) / ((obj.y - self.y)+0.00001))))%360
 		
 		if self.nearest_food_dir > self.direction:
 			self.senses = np.array([1,1])
 			
 		if self.nearest_food_dir < self.direction:
 			self.senses = np.array([-1,1])
-		
+
 		
 		self.l0 = self.senses
 		self.l1 = np.tanh(np.dot(self.l0, self.syn0))   
 		self.l2 = np.tanh(np.dot(self.l1, self.syn1)) 
-		
-		print(self.l0)
-		print(self.l2)
+	
 		
 		if self.l2[0] > 0:
 			self.direction += 5
