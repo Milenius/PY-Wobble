@@ -183,8 +183,6 @@ while True:
 				newWobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),new_syn0,new_syn1))
 		wobbles = wobbles + newWobbles
 		newWobbles = []
-	
-	print("Is running!")	
 
 	if len(wobbles) == 0:
 		wobble_spawner(wobble_amount)
