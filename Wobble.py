@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 import sys
+import time
 
 if len(sys.argv) > 1:
 	if sys.argv[1] == 'nogui':	
@@ -18,8 +19,8 @@ input_layer_neurons = 2
 hidden_layer_neurons = 4
 output_layer_neurons = 2
 
-wobble_amount = 75
-food_amount = 50
+wobble_amount = 200
+food_amount = 150
 
 gameObjects = []
 newWobbles = []
@@ -103,14 +104,15 @@ class wobble:
 		
 		self.direction = self.direction%360
 		
+	
 		self.shortest_distance = np.inf
 		for obj in foods:
-			self.cur_distance = np.sqrt(np.square(self.x - obj.x) + np.square(self.y - obj.y))
+			self.cur_distance = np.square(self.x - obj.x) + np.square(self.y - obj.y)
 			if self.cur_distance < self.shortest_distance:
 				self.shortest_distance = self.cur_distance
 				self.nearest_food = obj
 		
-		self.nearest_food_dir = int(np.degrees(np.arctan((obj.x - self.x) / ((obj.y - self.y)+0.00001))))%360
+		self.nearest_food_dir = int(np.degrees(np.arctan((self.nearest_food.x - self.x) / ((self.nearest_food.y - self.y)+0.00001))))%360
 		
 		if self.nearest_food_dir > self.direction:
 			self.senses = np.array([1,1])
@@ -162,7 +164,17 @@ def food_spawner(amount):
 wobbles = wobble_spawner(wobble_amount)
 foods = food_spawner(food_amount)
 
+frame = 0
+cur_fps = 0
+cur_fps_list = []
+cur_fps_median = 0
+frame_delta_time = 0
+frame_delta_time_list = []
+frame_delta_time_median = 0
 while True:
+
+	t = time.time()
+
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			quit()
@@ -197,3 +209,14 @@ while True:
 	clock.tick(60)				#Turn this off for no Frame Limit
 	if build_gui == True: pygame.display.update()		#Turn this off for no GUI
 
+	frame += 1
+	frame_delta_time = time.time()-t
+	cur_fps = int(1/frame_delta_time)
+	frame_delta_time_list.append(frame_delta_time) 
+	cur_fps_list.append(cur_fps)
+	frame_delta_time_median = np.median(frame_delta_time_list)
+	cur_fps_median = np.median(cur_fps_list)
+	print(frame)
+	if frame == 300:
+		print(cur_fps_median)
+		quit()
