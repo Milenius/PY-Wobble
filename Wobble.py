@@ -42,6 +42,8 @@ class food:
 		self.x = x
 		self.y = y
 
+		self.pos = np.array([self.x,self.y])
+
 	def instance_destroy(self):
 		gameObjects.remove(self)
 		foods.remove(self)
@@ -74,7 +76,9 @@ class wobble:
 		self.syn1 = syn1
 		
 		self.x = x
-		self.y = y		
+		self.y = y
+
+		self.pos = np.array([self.x,self.y])		
 
 	#Bewegungsberechnung anhand Geschwindigkeit und Rotation
 	def movement(self):
@@ -104,13 +108,8 @@ class wobble:
 		
 		self.direction = self.direction%360
 		
-	
-		self.shortest_distance = np.inf
-		for obj in foods:
-			self.cur_distance = np.square(self.x - obj.x) + np.square(self.y - obj.y)
-			if self.cur_distance < self.shortest_distance:
-				self.shortest_distance = self.cur_distance
-				self.nearest_food = obj
+		self.food_pos_deltas = np.asarray([obj.pos for obj in foods]) - self.pos
+		self.nearest_food = foods[np.argmin(np.einsum('ij,ij->i',self.food_pos_deltas,self.food_pos_deltas))]
 		
 		self.nearest_food_dir = int(np.degrees(np.arctan((self.nearest_food.x - self.x) / ((self.nearest_food.y - self.y)+0.00001))))%360
 		
@@ -131,7 +130,7 @@ class wobble:
 			self.direction += 5
 		else:
 			self.direction -= 5
-		
+
 		for obj in foods:
 			if ( (self.x >= (obj.x - self.size)) and (self.x <= (obj.x + self.size)) ) and ( (self.y >= (obj.y -self.size)) and (self.y <= (obj.y +self.size)) ):
 				self.health += obj.food_points
@@ -202,9 +201,14 @@ while True:
 	if len(foods) != food_amount:
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 
+	"""
 	for obj in gameObjects:
 		obj.step_event()
 		if build_gui == True: obj.draw_event()			#Turn this off for no GUI
+	"""
+
+	[obj.step_event() for obj in gameObjects]
+	if build_gui == True: [obj.draw_event() for obj in gameObjects]
 
 	clock.tick(60)				#Turn this off for no Frame Limit
 	if build_gui == True: pygame.display.update()		#Turn this off for no GUI
@@ -216,7 +220,7 @@ while True:
 	cur_fps_list.append(cur_fps)
 	frame_delta_time_median = np.median(frame_delta_time_list)
 	cur_fps_median = np.median(cur_fps_list)
-	print(frame)
+	#print(frame)
 	if frame == 300:
 		print(cur_fps_median)
 		quit()
