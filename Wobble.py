@@ -3,6 +3,7 @@ from pygame.locals import *
 import numpy as np
 import sys
 import time
+import matplotlib.pyplot as plt
 
 if len(sys.argv) > 1:
 	if sys.argv[1] == 'nogui':	
@@ -12,18 +13,20 @@ else:
 	print("No Valid Args passed.")
 	build_gui = True
 
-room_width = 1920
-room_height = 1080
+room_width = int(1920/1.25)
+room_height = int(1080/1.25)
 
 input_layer_neurons = 2
 hidden_layer_neurons = 4
 output_layer_neurons = 2
 
-wobble_amount = 200
-food_amount = 150
+wobble_amount = 100
+food_amount = 75
 
 gameObjects = []
 newWobbles = []
+
+plt.ion()
 
 pygame.init()
 if build_gui == True: screen=pygame.display.set_mode((room_width,room_height))	#Turn this off for no GUI
@@ -160,8 +163,46 @@ def food_spawner(amount):
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 	return foods
 
-wobbles = wobble_spawner(wobble_amount)
-foods = food_spawner(food_amount)
+def set_newgen_stats():
+
+	global gen_survival_ticks
+	global gen_survival_ticks_list 
+	global gen_eaten_foods
+	global gen_eaten_foods_list 
+	global gen_real_fitness
+	global gen_real_fitness_list
+
+	gen_real_fitness = int((gen_eaten_foods*gen_survival_ticks)*0.001)
+
+	gen_survival_ticks_list.append(gen_survival_ticks)
+	print("This Gen_Ticks   : "+str(gen_survival_ticks))
+	gen_survival_ticks = 0
+
+	gen_eaten_foods_list.append(gen_eaten_foods)
+	print("This Gen_Foods   : "+str(gen_eaten_foods))
+	gen_eaten_foods = 0
+	
+	gen_real_fitness_list.append(gen_real_fitness)
+	print("This Real_Fitness: "+str(gen_real_fitness))
+	gen_real_fitness = 0
+	
+	
+
+	print("Gen_Ticks_List  : "+str(gen_survival_ticks_list))
+	print("Gen_Foods_List  : "+str(gen_eaten_foods_list))
+	print("Gen_Real_F_List : "+str(gen_real_fitness_list))
+
+	plt.clf()
+	plt.plot(gen_survival_ticks_list,label='Survival Ticks')
+	plt.plot(gen_eaten_foods_list,label='Eaten Foods')
+	plt.plot(gen_real_fitness_list,label='Real Fitness')
+
+	plt.xlabel('Generation')
+	plt.ylabel('Stats')
+	plt.title('Py-Wobble Data')
+	plt.legend()
+	plt.show()
+
 
 frame = 0
 cur_fps = 0
@@ -170,6 +211,17 @@ cur_fps_median = 0
 frame_delta_time = 0
 frame_delta_time_list = []
 frame_delta_time_median = 0
+
+gen_survival_ticks = 0
+gen_survival_ticks_list = []
+gen_eaten_foods = 0
+gen_eaten_foods_list = []
+gen_real_fitness = 0 			#ticks*eaten_food
+gen_real_fitness_list = []
+
+wobbles = wobble_spawner(wobble_amount)
+foods = food_spawner(food_amount)
+
 while True:
 
 	t = time.time()
@@ -192,13 +244,18 @@ while True:
 					new_syn1[np.random.randint(new_syn1.shape[0]),np.random.randint(new_syn1.shape[1])] = 2*np.random.random_sample() - 1
 
 				newWobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),new_syn0,new_syn1))
+		set_newgen_stats()
+
 		wobbles = wobbles + newWobbles
 		newWobbles = []
 
 	if len(wobbles) == 0:
 		wobble_spawner(wobble_amount)
+		
+		set_newgen_stats()
 	
 	if len(foods) != food_amount:
+		gen_eaten_foods += 1
 		foods.append(food(np.random.randint(room_width),np.random.randint(room_height)))
 
 	"""
@@ -207,10 +264,12 @@ while True:
 		if build_gui == True: obj.draw_event()			#Turn this off for no GUI
 	"""
 
+	gen_survival_ticks += 1
+
 	[obj.step_event() for obj in gameObjects]
 	if build_gui == True: [obj.draw_event() for obj in gameObjects]
 
-	clock.tick(60)				#Turn this off for no Frame Limit
+	#clock.tick(60)				#Turn this off for no Frame Limit
 	if build_gui == True: pygame.display.update()		#Turn this off for no GUI
 
 	frame += 1
@@ -220,7 +279,6 @@ while True:
 	cur_fps_list.append(cur_fps)
 	frame_delta_time_median = np.median(frame_delta_time_list)
 	cur_fps_median = np.median(cur_fps_list)
-	#print(frame)
-	if frame == 300:
-		print(cur_fps_median)
-		quit()
+	
+
+	
