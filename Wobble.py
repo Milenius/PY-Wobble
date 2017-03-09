@@ -1,4 +1,4 @@
-import pygame
+﻿import pygame
 from pygame.locals import *
 import numpy as np
 import sys
@@ -13,15 +13,15 @@ else:
 	print("No Valid Args passed.")
 	build_gui = True
 
-room_width = int(1920/1.25)
-room_height = int(1080/1.25)
+room_width = int(1920)
+room_height = int(1080)
 
 input_layer_neurons = 2
-hidden_layer_neurons = 4
-output_layer_neurons = 2
+hidden_layer_neurons = 2
+output_layer_neurons = 1
 
-wobble_amount = 100
-food_amount = 75
+wobble_amount = 200	
+food_amount = 150
 
 gameObjects = []
 newWobbles = []
@@ -115,14 +115,12 @@ class wobble:
 		self.nearest_food = foods[np.argmin(np.einsum('ij,ij->i',self.food_pos_deltas,self.food_pos_deltas))]
 		
 		self.nearest_food_dir = int(np.degrees(np.arctan((self.nearest_food.x - self.x) / ((self.nearest_food.y - self.y)+0.00001))))%360
+		self.nearest_food_dis = np.sqrt( (self.nearest_food.x - self.x)**2 + (self.nearest_food.y - self.y)**2 )
 		
 		if self.nearest_food_dir > self.direction:
-			self.senses = np.array([1,1])
-		elif self.nearest_food_dir < self.direction:
-			self.senses = np.array([-1,1])
+			self.senses = np.array([self.nearest_food_dir,1])
 		else:
-			self.senses = np.array([0,1])
-		
+			self.senses = np.array([-self.nearest_food_dir,1])
 		
 		self.l0 = self.senses
 		self.l1 = np.tanh(np.dot(self.l0, self.syn0))   
@@ -152,7 +150,7 @@ class wobble:
 def wobble_spawner(amount):
 	wobbles = []
 	for i in range(amount):
-		wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),2*np.random.random((input_layer_neurons,hidden_layer_neurons)) - 1,2*np.random.random((hidden_layer_neurons,output_layer_neurons)) - 1))
+		wobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),4*np.random.random((input_layer_neurons,hidden_layer_neurons)) - 2,4*np.random.random((hidden_layer_neurons,output_layer_neurons)) - 2))
 
 	return wobbles
 
@@ -230,18 +228,18 @@ while True:
 		if event.type == QUIT:
 			quit()
 	if build_gui == True: screen.fill((220,220,220))			#Turn this off for no GUI
-
-	if (len(wobbles) < 5) and (len(wobbles) != 0):
+	
+	if (len(wobbles) < 50) and (len(wobbles) != 0):
 		for obj in wobbles:
-			for i in range(int(wobble_amount/5)):
+			for i in range(int(wobble_amount/50)):
 
 				new_syn0 = obj.syn0
 				if np.random.randint(10) == 1:
-					new_syn0[np.random.randint(new_syn0.shape[0]),np.random.randint(new_syn0.shape[1])] = 2*np.random.random_sample() - 1
+					new_syn0[np.random.randint(new_syn0.shape[0]),np.random.randint(new_syn0.shape[1])] = 4*np.random.random_sample() - 2
 
 				new_syn1 = obj.syn1
 				if np.random.randint(10) == 1:
-					new_syn1[np.random.randint(new_syn1.shape[0]),np.random.randint(new_syn1.shape[1])] = 2*np.random.random_sample() - 1
+					new_syn1[np.random.randint(new_syn1.shape[0]),np.random.randint(new_syn1.shape[1])] = 4*np.random.random_sample() - 2
 
 				newWobbles.append(wobble(np.random.randint(room_width),np.random.randint(room_height),new_syn0,new_syn1))
 		set_newgen_stats()
@@ -268,17 +266,19 @@ while True:
 
 	[obj.step_event() for obj in gameObjects]
 	if build_gui == True: [obj.draw_event() for obj in gameObjects]
-
+	
+	print(wobbles[0].l2)
+	
 	#clock.tick(60)				#Turn this off for no Frame Limit
 	if build_gui == True: pygame.display.update()		#Turn this off for no GUI
-
+	"""
 	frame += 1
 	frame_delta_time = time.time()-t
-	cur_fps = int(1/frame_delta_time)
+	cur_fps = int(1/frame_delta_time+1)
 	frame_delta_time_list.append(frame_delta_time) 
 	cur_fps_list.append(cur_fps)
 	frame_delta_time_median = np.median(frame_delta_time_list)
 	cur_fps_median = np.median(cur_fps_list)
-	
+	"""
 
 	
